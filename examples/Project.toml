@@ -1,0 +1,13 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+Lantern = "0b4d1926-383c-4aeb-b06a-aba90968d8e0"
+WGLMakie = "276b4fcb-3e11-5398-bf8b-a0c2d153d008"
+
+[compat]
+CairoMakie = "0.15.16"
+GLMakie = "0.13.16"
+WGLMakie = "0.13.16"
+
+[sources]
+Lantern = {path = ".."}

@@ -1,0 +1,11 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+Lantern = "0b4d1926-383c-4aeb-b06a-aba90968d8e0"
+
+[compat]
+CairoMakie = "0.15.16"
+Documenter = "1.19"
+
+[sources]
+Lantern = {path = ".."}

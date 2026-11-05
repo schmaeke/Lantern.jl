@@ -1,0 +1,7 @@
+Manifest*.toml
+/docs/build/
+/examples/output/
+*.jl.cov
+*.jl.mem
+.DS_Store
+.claude/

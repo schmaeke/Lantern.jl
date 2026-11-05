@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # Cancel superseded runs on the same branch or pull request.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    permissions:
+      actions: write   # julia-actions/cache deletes old caches
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ["1.12", "1"]
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+      - uses: julia-actions/cache@v2
+      # GLMakie needs an OpenGL window even to precompile, which CI runners cannot provide
+      # ("NSGL: Failed to find a suitable pixel format"). It is only used by the GPU tests
+      # (LANTERN_TEST_GPU=1), so its line is deleted from the test project before anything is
+      # resolved. (A `Pkg.rm` here would resolve the workspace without its manifest — the
+      # manifest is not committed — and leave Lantern's own dependencies out of it.)
+      - name: Remove GPU-only test dependencies
+        shell: bash
+        run: >-
+          julia -e 'f = "test/Project.toml";
+          write(f, join(filter(l -> !startswith(l, "GLMakie ="), readlines(f)), "\n") * "\n")'
+      - uses: julia-actions/julia-buildpkg@v1
+      # GPU/display tests are skipped unless LANTERN_TEST_GPU=1; CairoMakie snapshot tests run everywhere.
+      - uses: julia-actions/julia-runtest@v1
+
+  format:
+    name: Format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1"
+      - uses: julia-actions/cache@v2
+      # JuliaFormatter lives in the repository's own `format/` environment.
+      - name: Install JuliaFormatter
+        run: julia --project=format -e 'using Pkg; Pkg.instantiate()'
+      # Formatting (.JuliaFormatter.toml) and the 120-character limit for every text file.
+      - name: Verify formatting
+        run: julia --project=format precommit.jl --check
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      actions: write   # julia-actions/cache deletes old caches
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: "1"
+      - uses: julia-actions/cache@v2
+      # `docs/` is a workspace member: instantiating it resolves Lantern from the repository.
+      - name: Install dependencies
+        run: julia --project=docs -e 'using Pkg; Pkg.instantiate()'
+      # Build only (no deployment yet, see the end of docs/make.jl). Documenter fails on
+      # missing docstrings, broken references and failing examples.
+      - name: Build the manual
+        run: julia --project=docs docs/make.jl
