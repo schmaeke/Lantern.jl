@@ -186,6 +186,17 @@ julia --project=docs docs/make.jl
 Its pages also read well on GitHub: start with [Concepts](docs/src/manual/concepts.md) and
 [Authoring](docs/src/manual/authoring.md).
 
+## Writing decks with a coding agent
+
+[`skills/lantern`](skills/lantern/SKILL.md) is an agent skill for drafting, refining and checking decks. Its scripts let
+an agent inspect any moment of a talk without a window: build checks, contact sheets, mid-animation frames. Claude Code
+picks it up automatically inside this repository. For decks in other projects, link it into the project's or your
+user's skills directory, and keep it at the version of Lantern the deck uses:
+
+```sh
+ln -s /path/to/Lantern.jl/skills/lantern ~/.claude/skills/lantern
+```
+
 ## Acknowledgements
 
 Lantern stands on [Makie.jl](https://github.com/MakieOrg/Makie.jl), which does all rendering,
